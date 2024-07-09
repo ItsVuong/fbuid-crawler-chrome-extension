@@ -1,30 +1,39 @@
-// Copyright 2023 Google LLC
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     https://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 chrome.devtools.network.onRequestFinished.addListener(
   (request) => {
-    let result = request.request.url
-    if(result.startsWith("https://www.facebook.com/api/graphql/"))
-    { 
-      let div = document.createElement("ul");
-      for (var prop in request.response.headers[0]) {
-        let li = document.createElement("li");
-        li.innerText = prop + ": " + request.response.headers[10].name;
-        div.appendChild(li)
+    let ul = document.createElement("ul");
+    request.getContent((body) => {
+      if (request.request.url.startsWith('https://www.facebook.com/api/graphql/')) {
+        const parsedData = JSON.parse(body);
+        // const jsonString = JSON.stringify(parsedData, null, 2);
+        // ul.innerText = jsonString;
+        if (parsedData?.data?.node?.__typename.includes("Feedback")) {
+          // ul.innerText = jsonString;
+          const comments = parsedData.data.node.comment_rendering_instance_for_feed_location.comments.edges;
+          comments.forEach(comment => {
+            const li = document.createElement("li");
+            li.innerText = "uid: " + comment.node.user.id + "|| name: " + comment.node.user.name;
+            ul.appendChild(li);
+          })
+        }
+
+        document.body.appendChild(ul);
       }
-      div.innerText = JSON.stringify(request.cache);
-      document.body.appendChild(div);
-    }
+    })
+    // div.innerText = JSON.stringify(request.cache);
+    // document.body.appendChild(div);
   }
 );
+
+const btn = document.getElementById('run-script');
+
+try {
+  btn.addEventListener('click', () => {
+    console.log("in dev panel");
+    chrome.runtime.sendMessage({action: 'injectContentScript'});
+  });
+} catch (error) {
+  console.log(error)
+}
+
+
+
