@@ -17,17 +17,18 @@ function asyncGetElement(xpath, timeout) {
             timeout -= waitTime;
         }, waitTime);
     });
-
 }
 
 function runCrawler() {
     //open all comments of a post if it is not opened
     console.log("run crawler")
     if (!findByInnerText("//span[text()='All comments']")) {
-        findByInnerText("//span[text()='Most relevant' or text()='Newest']").click();
-
-        asyncGetElement("//span[text()='All comments']", 5000)
-            .then(result => { result.click() }, error => { console.log(error) });
+        asyncGetElement("//span[text()='Most relevant' or text()='Newest' or text()='Phù hợp nhất' or text()='Mới nhất']", 500)
+            .then(result => {
+                result.click();
+                asyncGetElement("//span[text()='All comments' or text()='Tất cả bình luận']", 5000)
+                    .then(result => { result.click() }, error => { console.log(error) });
+            }, error => { console.log(error) })
     }
 }
 
