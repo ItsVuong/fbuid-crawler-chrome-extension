@@ -20,6 +20,16 @@ chrome.devtools.network.onRequestFinished.addListener(
   }
 );
 
+//listen to event like finish...
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.event === 'done') {
+    let btn = document.createElement("btn");
+    btn.innerText = "download csv file";
+    document.body.appendChild(btn);
+  }
+})
+
+//add listener for run button
 const runBtn = document.getElementById('run-script');
 try {
   runBtn.addEventListener('click', () => {
@@ -30,6 +40,7 @@ try {
   console.log(error)
 }
 
+//add listener for stop button
 const stopBtn = document.getElementById('stop-script');
 try {
   stopBtn.addEventListener('click', () => {

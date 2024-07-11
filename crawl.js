@@ -27,9 +27,10 @@ function runCrawler() {
             .then(result => {
                 result.click();
                 asyncGetElement("//span[text()='All comments' or text()='Tất cả bình luận']", 5000)
-                    .then(result => { result.click() }, error => { console.log(error) });
+                    .then(result => { result.click() }, error => { console.log(error) })
             }, error => { console.log(error) })
     }
+    window.scrollTo(0, document.body.scrollHeight)
 }
 
 runCrawler();

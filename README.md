@@ -1,10 +1,12 @@
-# devtools.inspectedWindow
+# FB UID Crawler
 
-This sample demonstrates using the `inspectedWindow` API to collect and use data on the resouces used in a webpage.
+A chrome extension to crawl uid from facebook comment.
 
 ## Overview
 
-`devtools.inspectedWindow.getResources()` is used to collect information about the webpage. A devtools panel is then created to display the amount of resources of each type used on the page.
+what it can do so far:
+- Auto scroll to the bottom of a post.
+- Read fetched data everytime facebook fetch for more comments and extract the uid and name of users.
 
 ## Running this extension
 
