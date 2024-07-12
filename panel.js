@@ -1,3 +1,5 @@
+const uidList = new Map()
+
 chrome.devtools.network.onRequestFinished.addListener(
   (request) => {
     let ul = document.createElement("ul");
@@ -6,10 +8,17 @@ chrome.devtools.network.onRequestFinished.addListener(
         const parsedData = JSON.parse(body);
 
         if (parsedData?.data?.node?.__typename.includes("Feedback")) {
+          //get the comment objects from response
           const comments = parsedData.data.node.comment_rendering_instance_for_feed_location.comments.edges;
+          //get the uids and names from each comment
           comments.forEach(comment => {
+            const uid = comment.node.user.id;
+            const name = comment.node.user.name;
+            if (!uidList.has(uid)) {
+              uidList.set(uid, name)
+            }
             const li = document.createElement("li");
-            li.innerText = "uid: " + comment.node.user.id + "|| name: " + comment.node.user.name;
+            li.innerText = "uid: " + uid + "|| name: " + name;
             ul.appendChild(li);
           })
         }
@@ -20,21 +29,48 @@ chrome.devtools.network.onRequestFinished.addListener(
   }
 );
 
-//listen to event like finish...
+//listen to event
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.event === 'done') {
-    let btn = document.createElement("btn");
-    btn.innerText = "download csv file";
-    document.body.appendChild(btn);
+  if (message.event === 'got-all-comments') {
+    const header = document.getElementById('header');
+    let button = document.createElement("a");
+    button.innerText = "save";
+    header.appendChild(button);
+    //add listener for 'save' button
+
+      const csv = generateCsv(uidList);
+      button.setAttribute('href', csv);
+      button.setAttribute('download', 'File.csv');
+      button.textContent = 'Click to Download';
+      uidList.clear();
   }
 })
+
+function generateCsv(data){
+  const refinedData = []
+
+  const headers = ['uid', 'name'];
+  refinedData.push(headers);
+
+  data.forEach((value, key) => {
+    refinedData.push([key, value]);
+  });
+
+  let csvContent = '';
+  refinedData.forEach(row => {
+    csvContent += row.join(',') + '\n'
+  });
+  const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8,' })
+  const objUrl = URL.createObjectURL(blob);
+  return objUrl;
+}
 
 //add listener for run button
 const runBtn = document.getElementById('run-script');
 try {
   runBtn.addEventListener('click', () => {
     console.log("in dev panel");
-    chrome.runtime.sendMessage({action: 'injectContentScript'});
+    chrome.runtime.sendMessage({ action: 'injectContentScript' });
   });
 } catch (error) {
   console.log(error)
@@ -45,9 +81,11 @@ const stopBtn = document.getElementById('stop-script');
 try {
   stopBtn.addEventListener('click', () => {
     console.log("in dev panel");
-    chrome.runtime.sendMessage({action: 'removeContentScript'});
+    chrome.runtime.sendMessage({ action: 'removeContentScript' });
   });
 } catch (error) {
   console.log(error)
 }
+
+
 
